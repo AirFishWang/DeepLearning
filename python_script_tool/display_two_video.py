@@ -93,10 +93,9 @@ if __name__ == "__main__":
     # video1 = r"/home/wangchun/Desktop/retinanet_video_output_infer/1.mp4"
     # video2 = r"/media/wangchun/新加卷/wangchun/retinanet_video_output/1.mp4"
 
-    # video1 = r"./10.mp4"
-    # video2 = r"./10.mp4"
-    # output = r"./10_combine.mp4"
-    # display_two_video(video1, video2, output)
+    video1 = r"./10.mp4"
+    video2 = r"./10.mp4"
+    output = r"./10_combine.mp4"
+    display_two_video(video1, video2, output)
 
     # read_write_video()
-	pass
