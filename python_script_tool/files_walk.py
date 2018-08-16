@@ -4,7 +4,7 @@ import os
 
 def get_image_list(dir):
     image_list = []
-    support_files = [".bmp", ".png", ".jprg", ".jpg"]
+    support_files = [".bmp", ".png", ".jpeg", ".jpg"]
     for root, dirs, files in os.walk(dir):
         for f in files:
             fname = os.path.splitext(f)
