@@ -44,6 +44,7 @@ class FatherProcess():
             p = SonProcess("son_process_{}".format(i), parent_side, child_side)
             self.process_list.append(p)
             p.start()
+            print "son_process pid = {}".format(p.pid)
 
     def process_func(self, image_list):
         # map
@@ -128,9 +129,8 @@ def multi_process_test(phase, pid_log):
         obj = FatherProcess(count_process)
         with open(pid_log, 'w') as fwrite:
             fwrite.write('father {}\n'.format(os.getpid()))
-            p = psutil.Process(os.getpid())
-            for x in p.children():
-                fwrite.write("son {}\n".format(x.pid))
+            for p in obj.process_list:
+                fwrite.write("son {}\n".format(p.pid))
         for i in range(2):
             print obj.process_func(image_list)
         # obj.stop_son_process()
