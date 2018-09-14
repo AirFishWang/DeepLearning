@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright 1993-2018 NVIDIA Corporation.  All rights reserved.
 #
@@ -47,7 +49,7 @@
 # Users Notice.
 #
 
-#!/usr/bin/python
+
 from __future__ import division
 from __future__ import print_function
 import os
@@ -101,20 +103,20 @@ ITERATIONS = 10
 
 
 # API CHANGE: Try to generalize into a utils function
-#Run inference on device
+# Run inference on device
 def infer(context, input_img, batch_size):
-    #load engine
+    # load engine
     engine = context.get_engine()
     assert(engine.get_nb_bindings() == 2)
-    #create output array to receive data
+    # create output array to receive data
     dims = engine.get_binding_dimensions(1).to_DimsCHW()
     elt_count = dims.C() * dims.H() * dims.W() * batch_size
-    #convert input data to Float32
+    # convert input data to Float32
     input_img = input_img.astype(np.float32)
-    #Allocate pagelocked memory
+    # Allocate pagelocked memory
     output = cuda.pagelocked_empty(elt_count, dtype=np.float32)
 
-    #alocate device memory
+    # alocate device memory
     d_input = cuda.mem_alloc(batch_size * input_img.size * input_img.dtype.itemsize)
     d_output = cuda.mem_alloc(batch_size * output.size * output.dtype.itemsize)
 
@@ -122,32 +124,31 @@ def infer(context, input_img, batch_size):
 
     stream = cuda.Stream()
 
-    #transfer input data to device
+    # transfer input data to device
     cuda.memcpy_htod_async(d_input, input_img, stream)
-    #execute model
+    # execute model
     context.enqueue(batch_size, bindings, stream.handle, None)
-    #transfer predictions back
+    # transfer predictions back
     cuda.memcpy_dtoh_async(output, d_output, stream)
 
-    #return predictions
+    # return predictions
     return output
+
 
 def main():
     path = os.path.dirname(os.path.realpath(__file__))
 
-    tf_model = lenet5.learn()
+    # tf_model = lenet5.learn()
+    # uff_model = uff.from_tensorflow(tf_model, ["fc2/Relu"])
 
-    uff_model = uff.from_tensorflow(tf_model, ["fc2/Relu"])
-    #Convert Tensorflow model to TensorRT model
+    # 直接加载pb模型文件
+    uff_model = uff.from_tensorflow_frozen_model("mnist/log/4999.pb", ["fc2/Relu"])
+    # Convert Tensorflow model to TensorRT model
     parser = uffparser.create_uff_parser()
     parser.register_input("Placeholder", (1, 28, 28), 0)
     parser.register_output("fc2/Relu")
 
-    engine = trt.utils.uff_to_trt_engine(G_LOGGER,
-                                              uff_model,
-                                              parser,
-                                              MAX_BATCHSIZE,
-                                              MAX_WORKSPACE)
+    engine = trt.utils.uff_to_trt_engine(G_LOGGER, uff_model, parser, MAX_BATCHSIZE, MAX_WORKSPACE)
 
     assert(engine)
 
@@ -162,7 +163,6 @@ def main():
         out = infer(context, img, 1)
         print("|-----------|------------|")
         print("|     " + str(label) + "     |      " + str(np.argmax(out)) + "     |")
-
 
 
 if __name__ == "__main__":

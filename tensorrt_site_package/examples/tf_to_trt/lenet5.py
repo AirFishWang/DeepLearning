@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 #
 # Copyright 1993-2018 NVIDIA Corporation.  All rights reserved.
 #
@@ -47,7 +50,7 @@
 # Users Notice.
 #
 
-#!/usr/bin/python
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -83,11 +86,14 @@ UFF_OUTPUT_FILENAME = path + "/trained_lenet5.uff"
 
 MNIST_DATASETS = input_data.read_data_sets('mnist/input_data')
 
+
 def WeightsVariable(shape):
     return tf.Variable(tf.truncated_normal(shape, stddev=0.1, name='weights'))
 
+
 def BiasVariable(shape):
     return tf.Variable(tf.constant(0.1, shape=shape, name='biases'))
+
 
 def Conv2d(x, W, b, strides=1):
     # Conv2D wrapper, with bias and relu activation
@@ -99,12 +105,14 @@ def Conv2d(x, W, b, strides=1):
     x = tf.nn.bias_add(x, b)
     return tf.nn.relu(x)
 
+
 def MaxPool2x2(x, k=2):
     # MaxPool2D wrapper
     pad_size = k//2
     pad_mat = np.array([[0,0],[pad_size,pad_size],[pad_size,pad_size],[0,0]])
     #x = tf.pad(x, pad_mat)
     return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='VALID')
+
 
 def network(images_reshape):
     # Reshape
@@ -140,9 +148,11 @@ def network(images_reshape):
 
     return fc2
 
+
 def loss_metrics(logits, labels):
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits, name='softmax')
     return tf.reduce_mean(cross_entropy, name='softmax_mean')
+
 
 def training(loss):
     tf.summary.scalar('loss', loss)
@@ -153,14 +163,17 @@ def training(loss):
     train_op = optimizer.minimize(loss, global_step=global_step)
     return train_op
 
+
 def evaluation(logits, labels):
     correct = tf.nn.in_top_k(logits, labels, 1)
     return tf.reduce_sum(tf.cast(correct, tf.int32))
+
 
 def placeholder_inputs(batch_size):
     images_placeholder = tf.placeholder(tf.float32, shape=(None, 28, 28, 1)) # Tensor("Placeholder:0", shape=(?, 28, 28, 1), dtype=float32)
     labels_placeholder = tf.placeholder(tf.int32, shape=(None)) # Tensor("Placeholder_1:0", dtype=int32)
     return images_placeholder, labels_placeholder
+
 
 def fill_feed_dict(data_set, images_pl, labels_pl):
     images_feed, labels_feed = data_set.next_batch(BATCH_SIZE)
@@ -169,6 +182,7 @@ def fill_feed_dict(data_set, images_pl, labels_pl):
         labels_pl: labels_feed,
     }
     return feed_dict
+
 
 def do_eval(sess,
             eval_correct,
@@ -190,6 +204,7 @@ def do_eval(sess,
     tf.summary.scalar('precision', tf.constant(precision))
     print('Num examples %d, Num Correct: %d Precision @ 1: %0.04f' % (num_examples, true_count, precision))
     return log
+
 
 def run_training(data_sets):
     with tf.Graph().as_default():
@@ -235,72 +250,117 @@ def run_training(data_sets):
         frozen_graph = tf.graph_util.convert_variables_to_constants(sess, graphdef, OUTPUT_NAMES)
         return tf.graph_util.remove_training_nodes(frozen_graph)
 
+
 def learn():
     return run_training(MNIST_DATASETS)
+
 
 def get_testcase():
     return MNIST_DATASETS.test.next_batch(1)
 
+
 def load_meta_model_eval():
     meta_file = os.path.join("mnist/log", "model.ckpt-4999.meta")
     weight_file = os.path.join("mnist/log", "model.ckpt-4999")
+    with tf.Graph().as_default():
+        with tf.Session() as sess:
+            saver = tf.train.import_meta_graph(meta_file)
+            saver.restore(sess, weight_file)
 
-    with tf.Session() as sess:
-        saver = tf.train.import_meta_graph(meta_file)
-        saver.restore(sess, weight_file)
+            eval_correct = tf.get_default_graph().get_tensor_by_name("Sum:0")
+            images_placeholder = tf.get_default_graph().get_tensor_by_name("Placeholder:0")
+            labels_placeholder = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
+            summary = tf.get_default_graph().get_tensor_by_name("Merge/MergeSummary:0")
+            do_eval(sess,
+                    eval_correct,
+                    images_placeholder,
+                    labels_placeholder,
+                    MNIST_DATASETS.validation,
+                    summary)
 
-        eval_correct = tf.get_default_graph().get_tensor_by_name("Sum:0")
-        images_placeholder = tf.get_default_graph().get_tensor_by_name("Placeholder:0")
-        labels_placeholder = tf.get_default_graph().get_tensor_by_name("Placeholder_1:0")
-        summary = tf.get_default_graph().get_tensor_by_name("Merge/MergeSummary:0")
-        do_eval(sess,
-                eval_correct,
-                images_placeholder,
-                labels_placeholder,
-                MNIST_DATASETS.validation,
-                summary)
+            # write to pb file (pb means protobuff)
+            # 注意： 在tensorRT的demo， output_node_names其实只需要一个fc2/Relu, 这里改为多个是为了测试后面的do_eval函数
+            save_way = 1
+            if save_way == 1:
+                # 参考： https://www.cnblogs.com/Time-LCJ/p/8449646.html
+                # 此方法等效于用tensorflow的freeze_graph.py 脚本工具来固化
+                tf.train.write_graph(sess.graph_def, 'mnist/log', '4999.pb')
+                freeze_graph.freeze_graph(input_graph="mnist/log/4999.pb",
+                                          input_saver='',
+                                          input_binary=False,
+                                          input_checkpoint=weight_file,
+                                          output_node_names="fc2/Relu, Sum, Placeholder_1, Merge/MergeSummary",  # 逗号分隔多个节点
+                                          restore_op_name="save/restore_all",
+                                          filename_tensor_name="save/Const:0",
+                                          output_graph="mnist/log/4999.pb",
+                                          clear_devices=True,
+                                          initializer_nodes='')
+            elif save_way == 2:
+                # tf.get_default_graph(): 获得图
+                # tf.get_default_graph().as_graph_def(): 获得序列化的图, 序列化的图可以用于tf.import_graph_def函数
+                graph_def = tf.get_default_graph().as_graph_def()
+                # frozen_graph = tf.graph_util.convert_variables_to_constants(sess, graphdef, OUTPUT_NAMES)
+                frozen_graph = tf.graph_util.convert_variables_to_constants(sess, graph_def, ['fc2/Relu', "Sum", "Placeholder_1", "Merge/MergeSummary"])
+                frozen_graph = tf.graph_util.remove_training_nodes(frozen_graph)  # 移除train节点可以更加简化模型
+                with tf.gfile.GFile("mnist/log/4999.pb", "wb") as f:
+                    f.write(frozen_graph.SerializeToString())
+                print("%d ops in the final graph in function load_meta_model_eval" % (len(frozen_graph.node)))
 
-        # write to pb file (pb means protobuff)
-        tf.train.write_graph(sess.graph_def, 'mnist/log', '4999.pb')
-        freeze_graph.freeze_graph(input_graph="mnist/log/4999.pb",
-                                  input_saver='',
-                                  input_binary=False,
-                                  input_checkpoint=weight_file,
-                                  output_node_names="fc2/Relu",
-                                  restore_op_name="save/restore_all",
-                                  filename_tensor_name="save/Const:0",
-                                  output_graph="mnist/log/4999.pb",
-                                  clear_devices=True,
-                                  initializer_nodes='')
+                # type(tf.get_default_graph().get_operations()) = list
+                for index, op in enumerate(tf.get_default_graph().get_operations()):
+                    print("{} op.name in function load_meta_model_eval: {}".format(index+1, op.name))
+            else:
+                print("Please select one way to save pb model file")
 
-        # graphdef = tf.get_default_graph().as_graph_def()
-        # frozen_graph = tf.graph_util.convert_variables_to_constants(sess, graphdef, OUTPUT_NAMES)
-        # frozen_graph = tf.graph_util.remove_training_nodes(frozen_graph)
-        # with tf.gfile.GFile("mnist/log/4999.pb", "wb") as f:
-        #     f.write(frozen_graph.SerializeToString())
 
 def load_pb_model_eval():
+    # exit()
     pb_file = "mnist/log/4999.pb"
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        with tf.gfile.FastGFile(pb_file, 'rb') as f:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(f.read())
-            sess.graph.as_default()
-            tf.import_graph_def(graph_def)
-        # sess.run(tf.global_variables_initializer())
-        eval_correct = sess.graph.get_tensor_by_name("Sum:0")
-        images_placeholder = sess.graph.get_tensor_by_name("Placeholder:0")
-        labels_placeholder = sess.graph.get_tensor_by_name("Placeholder_1:0")
-        summary = sess.graph.get_tensor_by_name("Merge/MergeSummary:0")
+    with tf.gfile.GFile(pb_file, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
 
-        do_eval(sess,
-                eval_correct,
-                images_placeholder,
-                labels_placeholder,
-                MNIST_DATASETS.validation,
-                summary)
+    with tf.Graph().as_default() as graph:
+        eval_correct, images_placeholder, labels_placeholder, summary = [None, None, None, None]
+
+        load_way = 2
+        if load_way == 1:
+            # 方式1
+            tf.import_graph_def(graph_def)  # 未指定参数name, name会取默认值"import", 会将图里的张量名前面加上"import/"
+
+            for op in graph.get_operations():
+                print("in function load_pb_model_eval: {}".format(op.name))
+
+            eval_correct = graph.get_tensor_by_name("import/Sum:0")
+            images_placeholder = graph.get_tensor_by_name("import/Placeholder:0")
+            labels_placeholder = graph.get_tensor_by_name("import/Placeholder_1:0")
+            summary = graph.get_tensor_by_name("import/Merge/MergeSummary:0")
+        elif load_way == 2:
+            # 方式2
+            tf.import_graph_def(graph_def, name="")
+
+            for op in graph.get_operations():
+                print("in function load_pb_model_eval: {}".format(op.name))
+
+            eval_correct = graph.get_tensor_by_name("Sum:0")
+            images_placeholder = graph.get_tensor_by_name("Placeholder:0")
+            labels_placeholder = graph.get_tensor_by_name("Placeholder_1:0")
+            summary = graph.get_tensor_by_name("Merge/MergeSummary:0")
+        elif load_way == 3:
+            # 方式3
+            eval_correct, images_placeholder, labels_placeholder, summary = \
+                tf.import_graph_def(graph_def, return_elements=["Sum:0", "Placeholder:0", "Placeholder_1:0", "Merge/MergeSummary:0"])
+        else:
+            print("Please select one way to load pb model file")
+
+        with tf.Session(graph=graph) as sess:
+            do_eval(sess,
+                    eval_correct,
+                    images_placeholder,
+                    labels_placeholder,
+                    MNIST_DATASETS.validation,
+                    summary)
 
 
 if __name__ == "__main__":
@@ -312,3 +372,5 @@ if __name__ == "__main__":
 
     load_meta_model_eval()
     load_pb_model_eval()
+
+
