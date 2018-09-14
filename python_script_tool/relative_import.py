@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+# https://laike9m.com/blog/pythonxiang-dui-dao-ru-ji-zhi-xiang-jie,60/
 import os, sys
 
 if __name__ == "__main__" and __package__ is None:
