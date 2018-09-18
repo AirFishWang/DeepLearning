@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Copyright 1993-2018 NVIDIA Corporation.  All rights reserved.
 #
@@ -47,7 +49,7 @@
 # Users Notice.
 #
 
-#!/usr/bin/python
+
 from __future__ import division
 from __future__ import print_function
 import os
@@ -64,7 +66,6 @@ http://pillow.readthedocs.io/en/stable/installation.html""".format(err))
 
 try:
     import pycuda.driver as cuda
-    import pycuda.gpuarray as gpuarray
     import pycuda.autoinit
     import argparse
 except ImportError as err:
@@ -74,6 +75,12 @@ https://wiki.tiker.net/PyCuda/Installation/Linux
 pip(3) install tensorrt[examples]""".format(err))
 
 try:
+    import uff
+except ImportError as err:
+    raise ImportError("""ERROR: Failed to import module ({})
+Please make sure you have the UFF Toolkit installed.""".format(err))
+
+try:
     import tensorrt as trt
     from tensorrt.parsers import uffparser
 except ImportError as err:
@@ -81,31 +88,35 @@ except ImportError as err:
 Please make sure you have the TensorRT Library installed
 and accessible in your LD_LIBRARY_PATH""".format(err))
 
-G_LOGGER = trt.infer.ConsoleLogger(trt.infer.LogSeverity.INFO)
+import lenet5
+
+
 MAX_WORKSPACE = 1 << 30
+G_LOGGER = trt.infer.ConsoleLogger(trt.infer.LogSeverity.INFO)
+
+INPUT_W = 28
+INPUT_H = 28
+OUTPUT_SIZE = 10
+
 MAX_BATCHSIZE = 1
+ITERATIONS = 10
 
-PARSER = argparse.ArgumentParser(description="Example of how to create a Caffe based TensorRT Engine and run inference")
-PARSER.add_argument('datadir', help='Path to Python TensorRT data directory (realpath)')
 
-ARGS = PARSER.parse_args()
-DATA_DIR = ARGS.datadir
-
-DATA=DATA_DIR + '/mnist/'
-MODEL=DATA_DIR + '/mnist/lenet5.uff'
 # API CHANGE: Try to generalize into a utils function
-#Run inference on device
-def infer(engine, input_img, batch_size):
-    #load engine
-    context = engine.create_execution_context()
+# Run inference on device
+def infer(context, input_img, batch_size):
+    # load engine
+    engine = context.get_engine()
     assert(engine.get_nb_bindings() == 2)
-    #create output array to receive data
+    # create output array to receive data
     dims = engine.get_binding_dimensions(1).to_DimsCHW()
     elt_count = dims.C() * dims.H() * dims.W() * batch_size
-    #Allocate pagelocked memory
-    output = cuda.pagelocked_empty(elt_count, dtype = np.float32)
+    # convert input data to Float32
+    input_img = input_img.astype(np.float32)
+    # Allocate pagelocked memory
+    output = cuda.pagelocked_empty(elt_count, dtype=np.float32)
 
-    #alocate device memory
+    # alocate device memory
     d_input = cuda.mem_alloc(batch_size * input_img.size * input_img.dtype.itemsize)
     d_output = cuda.mem_alloc(batch_size * output.size * output.dtype.itemsize)
 
@@ -113,66 +124,47 @@ def infer(engine, input_img, batch_size):
 
     stream = cuda.Stream()
 
-    #transfer input data to device
-    cuda.memcpy_htod_async(d_input, input_img, stream)
-    #execute model
+    # transfer input data to device
+    cuda.memcpy_htod_async(d_input, input_img, stream)   # feed
+    # execute model
     context.enqueue(batch_size, bindings, stream.handle, None)
-    #transfer predictions back
-    cuda.memcpy_dtoh_async(output, d_output, stream)
+    # transfer predictions back
+    cuda.memcpy_dtoh_async(output, d_output, stream)     # fetch
 
-    #return predictions
+    # return predictions
     return output
-
-def get_testcase(path):
-    im = Image.open(path)
-    assert(im)
-    arr = np.array(im)
-    #make array 1D
-    img = arr.ravel()
-    return img
-
-#Also prints case to console
-def normalize(data):
-    #allocate pagelocked memory
-    norm_data = cuda.pagelocked_empty(data.shape, np.float32)
-    print("\n\n\n---------------------------", "\n")
-    for i in range(len(data)):
-        print(" .:-=+*#%@"[data[i] // 26] + ("\n" if ((i + 1) % 28 == 0) else ""), end="");
-        norm_data[i] = 1.0 - data[i] / 255.0
-    print("\n")
-    return norm_data
 
 
 def main():
-    path = dir_path = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.dirname(os.path.realpath(__file__))
 
-    #Convert uff model to TensorRT model
+    # tf_model = lenet5.learn()
+    # uff_model = uff.from_tensorflow(tf_model, ["fc2/Relu"])
+
+    # 直接加载pb模型文件
+    uff_model = uff.from_tensorflow_frozen_model("mnist/log/4999.pb", ["fc2/Relu"])
+    # Convert Tensorflow model to TensorRT model
     parser = uffparser.create_uff_parser()
-    parser.register_input("Input_0", (1, 28, 28), 0)
-    parser.register_output("Binary_3")
-    
+    parser.register_input("Placeholder", (1, 28, 28), 0)
+    parser.register_output("fc2/Relu")
 
-    engine = trt.utils.uff_file_to_trt_engine(G_LOGGER,
-                                              MODEL,
-                                              parser,
-                                              MAX_BATCHSIZE,
-                                              MAX_WORKSPACE,
-                                              trt.infer.DataType.FLOAT)
+    engine = trt.utils.uff_to_trt_engine(G_LOGGER, uff_model, parser, MAX_BATCHSIZE, MAX_WORKSPACE)
 
     assert(engine)
 
     parser.destroy()
+    context = engine.create_execution_context()
 
-    rand_file = randint(0, 9)
-    img = get_testcase(DATA + str(rand_file) + '.pgm')
-    data = normalize(img)
-
-    print("Test case: " + str(rand_file))
-
-    out = infer(engine, data, 1)
-
-    print("Prediction: " + str(np.argmax(out)))
+    print("\n| TEST CASE | PREDICTION |")
+    for i in range(ITERATIONS):
+        img, label = lenet5.get_testcase()
+        img = img[0]
+        label = label[0]
+        out = infer(context, img, 1)
+        print("|-----------|------------|")
+        print("|     " + str(label) + "     |      " + str(np.argmax(out)) + "     |")
 
 
 if __name__ == "__main__":
     main()
+

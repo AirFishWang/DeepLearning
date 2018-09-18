@@ -82,7 +82,7 @@ MAX_STEPS = 5000
 IMAGE_SIZE = 28
 IMAGE_PIXELS = IMAGE_SIZE ** 2
 OUTPUT_NAMES = ["fc2/Relu"]
-UFF_OUTPUT_FILENAME = path + "/trained_lenet5.uff"
+UFF_OUTPUT_FILENAME = path + "/lenet5.uff"
 
 MNIST_DATASETS = input_data.read_data_sets('mnist/input_data')
 
@@ -364,11 +364,11 @@ def load_pb_model_eval():
 
 
 if __name__ == "__main__":
-    frozen_graph = run_training(MNIST_DATASETS)
-    uff.from_tensorflow(graphdef=frozen_graph,
-                        output_filename=UFF_OUTPUT_FILENAME,
-                        output_nodes=OUTPUT_NAMES,
-                        text=True)
+    # frozen_graph = run_training(MNIST_DATASETS)
+    # uff.from_tensorflow(graphdef=frozen_graph,
+    #                     output_filename=UFF_OUTPUT_FILENAME,
+    #                     output_nodes=OUTPUT_NAMES,
+    #                     text=True)
 
     load_meta_model_eval()
     load_pb_model_eval()

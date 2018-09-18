@@ -125,11 +125,11 @@ def infer(context, input_img, batch_size):
     stream = cuda.Stream()
 
     # transfer input data to device
-    cuda.memcpy_htod_async(d_input, input_img, stream)
+    cuda.memcpy_htod_async(d_input, input_img, stream)   # feed
     # execute model
     context.enqueue(batch_size, bindings, stream.handle, None)
     # transfer predictions back
-    cuda.memcpy_dtoh_async(output, d_output, stream)
+    cuda.memcpy_dtoh_async(output, d_output, stream)     # fetch
 
     # return predictions
     return output
@@ -138,11 +138,11 @@ def infer(context, input_img, batch_size):
 def main():
     path = os.path.dirname(os.path.realpath(__file__))
 
-    # tf_model = lenet5.learn()
-    # uff_model = uff.from_tensorflow(tf_model, ["fc2/Relu"])
+    tf_model = lenet5.learn()
+    uff_model = uff.from_tensorflow(tf_model, ["fc2/Relu"])
 
     # 直接加载pb模型文件
-    uff_model = uff.from_tensorflow_frozen_model("mnist/log/4999.pb", ["fc2/Relu"])
+    # uff_model = uff.from_tensorflow_frozen_model("mnist/log/4999.pb", ["fc2/Relu"])
     # Convert Tensorflow model to TensorRT model
     parser = uffparser.create_uff_parser()
     parser.register_input("Placeholder", (1, 28, 28), 0)
@@ -160,6 +160,9 @@ def main():
         img, label = lenet5.get_testcase()
         img = img[0]
         label = label[0]
+        img.reshape((28, 4, 7))
+        img.reshape((28, 28))   # 任意shape都不影响结果
+        print("img.shape = {}".format(img.shape))
         out = infer(context, img, 1)
         print("|-----------|------------|")
         print("|     " + str(label) + "     |      " + str(np.argmax(out)) + "     |")
