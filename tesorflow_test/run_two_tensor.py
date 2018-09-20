@@ -8,6 +8,8 @@ import tensorflow as tf
 a = tf.constant(np.ones((1, 2, 3)), name="a")
 b = tf.constant(np.ones((1, 2, 3)), name="b")
 
+print a.name
+
 add_result = a + b
 sub_result = a - b
 

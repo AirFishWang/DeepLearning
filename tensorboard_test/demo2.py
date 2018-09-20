@@ -22,8 +22,9 @@ def load_lenet5_meta_model():
 
 
 def load_ocr_meta_model():
-    meta_file = '/home/wangchun/Desktop/Attention-OCR/Attention-OCR-v2-debug/snapshots/translate.ckpt-850000.meta'
-    weight_file = '/home/wangchun/Desktop/Attention-OCR/Attention-OCR-v2-debug/snapshots/translate.ckpt-850000'
+    # 测试此函数需要注意tensorflow版本1.0.1
+    meta_file = '/home/wangchun/Desktop/Attention-OCR/Attention-OCR-v2-debug-multiprocess/snapshots/translate.ckpt-850000.meta'
+    weight_file = '/home/wangchun/Desktop/Attention-OCR/Attention-OCR-v2-debug-multiprocess/translate.ckpt-850000'
     with tf.Graph().as_default():
         with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
             saver = tf.train.import_meta_graph(meta_file)
