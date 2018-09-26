@@ -95,16 +95,15 @@ def tensorrt_infer(tf_model = None):
     parser.register_output("c")
     engine = trt.utils.uff_to_trt_engine(G_LOGGER, uff_model, parser, MAX_BATCHSIZE, MAX_WORKSPACE)
     assert (engine)
+    assert (engine.get_nb_bindings() == 3)          # engine.get_nb_bindings() = register_input + register_output
     parser.destroy()
     context = engine.create_execution_context()
 
     dims_a = engine.get_binding_dimensions(0).to_DimsCHW()
+    a_input = cuda.mem_alloc(batch_size * dims_a.C() * dims_a.H() * dims_a.W() * input_data.dtype.itemsize)
+
     dims_b = engine.get_binding_dimensions(1).to_DimsCHW()
     dims_c = engine.get_binding_dimensions(2).to_DimsCHW()
-
-    # load engine
-    engine = context.get_engine()
-    assert (engine.get_nb_bindings() == 3)          # engine.get_nb_bindings() = register_input + register_output
 
     # Allocate pagelocked memory
     output_b = cuda.pagelocked_empty(dims_b.C() * dims_b.H() * dims_b.W() * batch_size, dtype=np.float32)
@@ -112,7 +111,7 @@ def tensorrt_infer(tf_model = None):
 
 
     # alocate device memory
-    a_input = cuda.mem_alloc(batch_size * dims_a.C() * dims_a.H() * dims_a.W() * input_data.dtype.itemsize)
+
     b_output = cuda.mem_alloc(batch_size * dims_b.C() * dims_b.H() * dims_b.W() * output_b.dtype.itemsize)
     c_output = cuda.mem_alloc(batch_size * dims_c.C() * dims_c.H() * dims_c.W() * output_c.dtype.itemsize)
 

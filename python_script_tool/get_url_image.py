@@ -5,7 +5,8 @@ import requests
 
 
 def get_url_image():
-    url = "https://developer.nvidia.com/sites/default/files/akamai/cuda/images/deeplearning/TRT3_Benchmark1.PNG"
+    # url = "https://developer.nvidia.com/sites/default/files/akamai/cuda/images/deeplearning/TRT3_Benchmark1.PNG"
+    url = "http://119.97.201.22:8080/GetHouseInfo.ashx?price=ABmTF%2BZJfC7jwz5yz77JLg=="
     url_image = requests.get(url)
     image = np.asarray(bytearray(url_image.content), np.uint8)
     image = cv2.imdecode(image, 0)
