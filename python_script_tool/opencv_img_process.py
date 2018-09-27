@@ -17,5 +17,29 @@ def roi_image():
     cv2.waitKey()
 
 
+def read_image_test():
+    image_path = "../data/rgba.png"
+    image = cv2.imread(image_path, cv2.IMREAD_ANYDEPTH)
+    print "cv2.IMREAD_ANYDEPTH shape = {}".format(image.shape)
+    cv2.imshow("image", image)
+    cv2.waitKey()
+
+    image = cv2.imread(image_path, cv2.IMREAD_ANYCOLOR)
+    print "cv2.IMREAD_ANYCOLOR shape = {}".format(image.shape)
+    cv2.imshow("image", image)
+    cv2.waitKey()
+
+    image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    print "cv2.IMREAD_UNCHANGED shape = {}".format(image.shape)
+    cv2.imshow("image", image)
+    cv2.waitKey()
+
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    print "cv2.IMREAD_GRAYSCALE shape = {}".format(image.shape)
+    cv2.imshow("image", image)
+    cv2.waitKey()
+
+
 if __name__ == "__main__":
-    roi_image()
+    # roi_image()
+    read_image_test()
