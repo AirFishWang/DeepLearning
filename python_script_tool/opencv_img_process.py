@@ -16,6 +16,11 @@ def roi_image():
     cv2.imshow("roi", roi)
     cv2.waitKey()
 
+def resize_image():
+    src_image = cv2.imread(image_path)
+    dst_image = cv2.resize(src_image, (400, 300))   # (w, h)
+    cv2.imshow("dst_image", dst_image)
+    cv2.waitKey(0)
 
 def read_image_test():
     image_path = "../data/rgba.png"
@@ -42,4 +47,5 @@ def read_image_test():
 
 if __name__ == "__main__":
     # roi_image()
-    read_image_test()
+    # read_image_test()
+    resize_image()

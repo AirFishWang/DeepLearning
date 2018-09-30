@@ -10,6 +10,7 @@ import random
 
 imgaug.seed(random.randint(0, 100))
 
+
 class Generator():
     def __init__(self):
         self.fonts_dir = "./fonts"
@@ -18,12 +19,12 @@ class Generator():
         self.seq = iaa.Sequential([
             # iaa.PerspectiveTransform(scale=0.02, keep_size=True),
             iaa.SomeOf((0, 3), [
-                iaa.GaussianBlur(sigma=iap.Uniform(0, 0.05)),
+                iaa.GaussianBlur(sigma=iap.Uniform(0, 0.01)),
                 iaa.Add((-20, 20)),
-                iaa.OneOf([
-                    iaa.AverageBlur(k=(0, 2)),
-                    iaa.MedianBlur(k=(1, 3))
-                ])
+                 iaa.OneOf([
+                     iaa.AverageBlur(k=(0, 1)),
+                     iaa.MedianBlur(k=(1, 3))
+                 ])
             ])
         ], random_order=True)
 
@@ -94,9 +95,11 @@ class Generator():
             height = 17
             font = ImageFont.truetype(os.path.join(self.fonts_dir, self.fonts_list[0]), font_size)
         elif type == "xiamen":
+            image = self.font_to_image_xiamen(word)
+            return image
             font_size = 28
             height = 32
-            font = ImageFont.truetype(os.path.join(self.fonts_dir, self.fonts_list[2]), font_size)
+            font = ImageFont.truetype(os.path.join(self.fonts_dir, self.fonts_list[0]), font_size)
         else:
             raise Exception("the parameter 'type' must be wuhan or xiamen")
         img = Image.new("L", (300, 100), 255)
@@ -125,6 +128,25 @@ class Generator():
 
         return img
 
+    def font_to_image_xiamen(self, word):
+        xiamen_char = "./xiamen_char"
+        image_dicts = {}
+        for x in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ',']:
+            image_dicts[x] = cv2.imread(os.path.join(xiamen_char, x + ".png"))
+
+        length = len(word)
+
+        if length == 0:
+            raise Exception("the length of word must not be zero")
+        result = image_dicts[word[0]]
+        for i in range(1, length):
+            result = np.concatenate((result, image_dicts[word[i]]), axis=1)
+
+        h, w = result.shape[:2]
+        result = cv2.resize(result, (32*w/h, 32))
+
+        return result
+
 
 def gen_sample(num, type, output_dir):
     if not os.path.exists(output_dir):
@@ -152,6 +174,8 @@ def gen_sample(num, type, output_dir):
 
 if __name__ == "__main__":
     generator = Generator()
+
+
     # # word = generator.gen_word_wuhan()
     # word = generator.gen_word_xiamen()
     #
@@ -164,8 +188,10 @@ if __name__ == "__main__":
     #
     # print generator.gen_word_xiamen()
 
-    gen_sample(6000, "wuhan", "./wuhan_smaple")
-    gen_sample(10000, "xiamen", "./xiamen_smaple")
+    # gen_sample(6000, "wuhan", "./wuhan_smaple")
+    gen_sample(6000, "xiamen", "./xiamen_smaple")
+
+    # generator.font_to_image_xiamen("1,023,456,789")
 
     # word = "1,234,567"
     # image = generator.font_to_image(word, "xiamen")
