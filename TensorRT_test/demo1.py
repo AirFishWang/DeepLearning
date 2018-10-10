@@ -37,6 +37,7 @@ def get_frozen_graph():
 
         # a = tf.placeholder(tf.float32, shape=(), name="a")
         a = tf.placeholder(tf.float32, shape=(2,), name="a")
+        # a = tf.placeholder(tf.float32, shape=(1, 2, 4, 1), name="a")
         b = tf.add(a, a, name="b")
         c = tf.subtract(a, a, name="c")
 
@@ -72,7 +73,7 @@ def test_frozen_graph(frozen_graph):
         b = graph.get_tensor_by_name("b:0")
 
         with tf.Session() as sess:
-            print sess.run(b, feed_dict={a: np.ones((1, 2, 4, 1))})
+            print sess.run(b, feed_dict={a: np.array([1.0, 2.0])})
 
 
 def tensorrt_infer(tf_model = None):
@@ -135,7 +136,7 @@ def tensorrt_infer(tf_model = None):
 
 if __name__ == "__main__":
     tf_model = get_frozen_graph()
-    # test_frozen_graph(tf_model)
-    tensorrt_infer(tf_model)
+    test_frozen_graph(tf_model)
+    # tensorrt_infer(tf_model)
 
 
