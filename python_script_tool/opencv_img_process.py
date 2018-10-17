@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cv2
+import numpy as np
 
 image_path = "../data/cat.jpeg"
 
@@ -16,11 +17,13 @@ def roi_image():
     cv2.imshow("roi", roi)
     cv2.waitKey()
 
+
 def resize_image():
     src_image = cv2.imread(image_path)
     dst_image = cv2.resize(src_image, (400, 300))   # (w, h)
     cv2.imshow("dst_image", dst_image)
     cv2.waitKey(0)
+
 
 def read_image_test():
     image_path = "../data/rgba.png"
@@ -45,7 +48,19 @@ def read_image_test():
     cv2.waitKey()
 
 
+def concatenate_image():
+    image = cv2.imread(image_path)
+    h, w = image.shape[:2]
+    # dst_image = np.concatenate((image, image), axis=1)
+    padding_image = np.ones([h, 50, 3], dtype=np.uint8) * 255
+    dst_image = np.concatenate((padding_image, image), axis=1)
+    cv2.imshow("padding_image", padding_image)
+    cv2.imshow("concatenate", dst_image)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
-    resize_image()
+    # resize_image()
+    concatenate_image()
