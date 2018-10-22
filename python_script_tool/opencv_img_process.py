@@ -53,7 +53,7 @@ def concatenate_image():
     h, w = image.shape[:2]
     # dst_image = np.concatenate((image, image), axis=1)
     padding_image = np.ones([h, 50, 3], dtype=np.uint8) * 255
-    dst_image = np.concatenate((padding_image, image), axis=1)
+    dst_image = np.concatenate((padding_image, image, padding_image), axis=1)
     cv2.imshow("padding_image", padding_image)
     cv2.imshow("concatenate", dst_image)
     cv2.waitKey(0)
