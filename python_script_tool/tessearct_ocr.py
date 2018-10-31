@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+    you can get the source and tessdata from https://github.com/tesseract-ocr
+    before use pyocr, you should install tesseract(https://github.com/tesseract-ocr/tesseract/wiki)
+    if you want to add tessdata, you can download tessdata file and add it to /usr/share/tesseract-ocr/tessdata
+"""
 import sys
 from PIL import Image
 import pyocr
@@ -26,7 +31,7 @@ if __name__ == "__main__":
     # to use.
 
     txt = tool.image_to_string(
-        Image.open('2.png'),
+        Image.open('../data/1.png'),
         lang="chi_sim",
         builder=pyocr.builders.TextBuilder()
     )
