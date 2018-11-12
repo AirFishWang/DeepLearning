@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+import numpy as np
 
 
 def tensor_shape_test():
@@ -21,6 +22,20 @@ def tensor_shape_test():
     concat_d = tf.concat([d, d], 0)
     print "concat_d.shape = {}".format(concat_d.shape)
 
+    e = tf.placeholder(tf.float32, shape=(16, 20, 512), name='e')
+    e_split = tf.split(e, 16, 0)
+    for x in e_split:
+        print x.name, x.shape
+
+    e_split = [tf.squeeze(x, squeeze_dims=[0]) for x in e_split]
+    for x in e_split:
+        print x.name, x.shape
+
+    # input = np.ones((14, 1, 512), dtype=np.float32)
+    # with tf.Session() as sess:
+    #     result = sess.run(e_split, feed_dict={e.name : input})
+    #     for x in result:
+    #         print x.shape
 
 if __name__ == "__main__":
     tensor_shape_test()
