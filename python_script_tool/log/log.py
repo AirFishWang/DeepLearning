@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import logging.handlers
 
 """
 logging.basicConfig < handler.setLevel < logger.setLevel
@@ -15,7 +16,8 @@ logger = logging.getLogger('mylogger')
 logger.setLevel(logging.INFO)
 
 # 创建一个handler，用于写入日志文件
-fh = logging.FileHandler('test.log')
+# fh = logging.FileHandler('test.log')
+fh = logging.handlers.TimedRotatingFileHandler('test.log', 'S', 10, 5)
 # fh.setLevel(logging.INFO)
 
 # 再创建一个handler，用于输出到控制台
