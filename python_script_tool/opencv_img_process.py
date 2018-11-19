@@ -59,8 +59,22 @@ def concatenate_image():
     cv2.waitKey(0)
 
 
+def threshold_image():
+    image = cv2.imread(image_path)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # threshold的第二个参数是阈值，第三个参数是二值化后设置的max value，如果指定了cv2.THRESH_TRIANGLE或者cv2.THRESH_OTSU，
+    # 算法将不采用提供的阈值，而是使用计算出来的阈值，返回值ret为最终选取的阈值
+    ret, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_TRIANGLE)
+    # ret, binary = cv2.threshold(gray_image, 125, 255, cv2.THRESH_BINARY)
+    print "ret = {}".format(ret)
+    cv2.imshow("binary", binary)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
     # resize_image()
-    concatenate_image()
+    # concatenate_image()
+    threshold_image()
