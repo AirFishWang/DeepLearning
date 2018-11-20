@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import cv2
+import os
+import shutil
 import numpy as np
+from files_walk import get_image_list
 
 image_path = "../data/cat.jpeg"
 
@@ -72,9 +75,59 @@ def threshold_image():
     cv2.waitKey(0)
 
 
+def need_convert_backgroud(gray_image):
+    """
+    convert a "black-groud" image to "white-ground" image according to peripheral pixel if necessary
+    :param gray_image:
+    :return:
+    """
+
+    ret, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    d = 3
+    h, w = gray_image.shape[:2]
+    boundary = np.concatenate((binary[0:d, :].flatten(),
+                               binary[h-d:h, :].flatten(),
+                               binary[:, 0:d].flatten(),
+                               binary[:, w-d:w].flatten()), axis=0)
+    white_pixel_count = np.where(boundary == 255)[0].shape[0]
+    black_pixel_count = np.where(boundary == 0)[0].shape[0]
+    if white_pixel_count >= black_pixel_count:
+        return False
+    else:
+        return True
+
+
+def backgroud_classify():
+    input_dir = "/home/wangchun/Desktop/图片筛选/广告_select/meitu_ps_illegal_crnn"
+    output_dir = input_dir + "_classify"
+    white_dir = os.path.join(output_dir, "white_ground")
+    black_dir = os.path.join(output_dir, "black_ground")
+    for x in [white_dir, black_dir]:
+        if not os.path.exists(x):
+            os.makedirs(x)
+    image_lists = get_image_list(input_dir)
+    count = len(image_lists)
+    for index, image_file in enumerate(image_lists):
+        image_name = os.path.split(image_file)[1]
+        image = cv2.imread(image_file)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        if need_convert_backgroud(gray_image):
+            shutil.copyfile(image_file, os.path.join(black_dir, image_name))
+            cv2.imwrite(os.path.join(black_dir, image_name+"_gray.png"), 255-gray_image)
+            print "{}/{} copy {} to black dir".format(index + 1, count, image_file)
+        else:
+            shutil.copyfile(image_file, os.path.join(white_dir, image_name))
+            cv2.imwrite(os.path.join(white_dir, image_name + "_gray.png"), gray_image)
+            print "{}/{} copy {} to white dir".format(index + 1, count, image_file)
+
+    print "backgroud_classify finished"
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
     # resize_image()
     # concatenate_image()
-    threshold_image()
+    # threshold_image()
+    backgroud_classify()
+    pass
