@@ -18,6 +18,7 @@ logger.setLevel(logging.INFO)
 # 创建一个handler，用于写入日志文件
 # fh = logging.FileHandler('test.log')
 fh = logging.handlers.TimedRotatingFileHandler('test.log', 'S', 10, 5)
+# fh = logging.handlers.TimedRotatingFileHandler(os.path.join(log_dir, log_name), 'midnight', 1, 365)
 # fh.setLevel(logging.INFO)
 
 # 再创建一个handler，用于输出到控制台
