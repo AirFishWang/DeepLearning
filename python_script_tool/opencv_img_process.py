@@ -123,11 +123,45 @@ def backgroud_classify():
     print "backgroud_classify finished"
 
 
+def rotate_image_test():
+    src_image = cv2.imread(image_path)
+    h, w = src_image.shape[:2]
+    center_x = w / 2
+    center_y = h / 2
+    angle = 10
+    M = cv2.getRotationMatrix2D((center_x, center_y), angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - center_x
+    M[1, 2] += (nH / 2) - center_y
+    dst_image = cv2.warpAffine(src_image, M, (nW, nH), borderValue=(255, 255, 255))
+    cv2.imshow("rotate", dst_image)
+    cv2.waitKey(0)
+
+
+def affine_image_test():
+    src_image = cv2.imread(image_path)
+    h, w = src_image.shape[:2]
+    pts1 = np.float32([[100, 100], [200, 100], [100, 200]])
+    pts2 = np.float32([[200, 100], [300, 100], [100, 200]])
+    M = cv2.getAffineTransform(pts1, pts2)
+    dst_image = cv2.warpAffine(src_image, M, (w, h), borderValue=(255, 255, 255))
+    cv2.imshow("affine", dst_image)
+    cv2.waitKey(0)
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
     # resize_image()
     # concatenate_image()
     # threshold_image()
-    backgroud_classify()
+    # backgroud_classify()
+    # rotate_image_test()
+    affine_image_test()
     pass
