@@ -158,7 +158,7 @@ class GeneratorXiaMen(Generator):
 class GeneratorUniversal(Generator):
     def __init__(self):
         Generator.__init__(self)
-        self.augment = True
+        self.augment = False
         self.seq = iaa.Sequential([
             # iaa.PerspectiveTransform(scale=0.02, keep_size=True),
             iaa.SomeOf((2, 4), [                  # 每次使用0到3个方式增强
@@ -218,23 +218,47 @@ class GeneratorUniversal(Generator):
         left, right, top, bottom = self.find_text_box(np.array(img))
         text_w = right - left + 1
 
-        left_padding = 4
-        right_padding = 7
+        left_padding = 2
+        right_padding = 2
         top_padding = 3
         bottom_padding = 4
 
         width = left_padding + text_w + right_padding
-        img = Image.new('L', (width, height), random.randint(200, 255))
+        background_gray = random.randint(200, 255)
+        img = Image.new('L', (width, height), background_gray)
         draw = ImageDraw.Draw(img)
         draw.text((left_padding - left, top_padding - top), word, fill=0, font=font)
 
         # convert to opencv image format
         img = np.array(img)
 
+        img = self.random_pad_image(img, background_gray)
+
         if self.augment:
             img = self.seq.augment_image(img)
 
         return img
+
+    def random_pad_image(self, image, background_gray):
+        h, w = image.shape[:2]
+
+        left_pad = random.randint(-3, 10)
+        if left_pad < 0:
+            image = image[:, (-left_pad):]
+        elif left_pad > 0:
+            image = np.concatenate((np.ones([h, left_pad], dtype=np.uint8)*background_gray, image), axis=1)
+        else:
+            pass
+
+        right_pad = random.randint(-3, 10)
+        if right_pad < 0:
+            image = image[:, :right_pad]
+        elif right_pad > 0:
+            image = np.concatenate((image, np.ones([h, right_pad], dtype=np.uint8)*background_gray), axis=1)
+        else:
+            pass
+
+        return image
 
 
 def gen_sample(num, type, output_dir):
@@ -254,7 +278,7 @@ def gen_sample(num, type, output_dir):
         for i in range(num):
             word = generator.gen_word()
             image = generator.font_to_image(word)
-            image_name = "{}.jpeg".format(i+1)
+            image_name = "{}.jpeg".format(i+1+100000)
             cv2.imwrite(os.path.join(output_dir, image_name), image)
             fwiter.write("{}/{} {}\n".format(output_dir, image_name, word))
             print "generator {} word = {} type = {}".format(image_name, word, type)
@@ -264,4 +288,6 @@ if __name__ == "__main__":
     # gen_sample(20, "wuhan", "./wuhan_sample")
     # gen_sample(20, "xiamen", "./xiamen_sample")
     # gen_sample(100000, "universal", "./universal_sample_train")
-    gen_sample(20000, "universal", "./universal_sample_test")
+    # gen_sample(20000, "universal", "./universal_sample_test")
+
+    gen_sample(100000, "universal", "./universal_sample_train2")

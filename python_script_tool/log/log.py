@@ -23,7 +23,7 @@ ch = logging.StreamHandler()
 # ch.setLevel(logging.INFO)
 
 # 定义handler的输出格式
-formatter = logging.Formatter('[%(asctime)s][%(filename)s][line: %(lineno)d][%(levelname)s]: %(message)s')
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(filename)s %(lineno)s: %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 
