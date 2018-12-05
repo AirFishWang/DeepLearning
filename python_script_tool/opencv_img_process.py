@@ -3,6 +3,7 @@ import cv2
 import os
 import shutil
 import numpy as np
+from matplotlib import pyplot as plt
 from files_walk import get_image_list
 
 image_path = "../data/cat.jpeg"
@@ -155,6 +156,27 @@ def affine_image_test():
     cv2.imshow("affine", dst_image)
     cv2.waitKey(0)
 
+
+def draw_histogram():
+    src_image = cv2.imread(image_path)
+    src_image = cv2.imread("/home/wangchun/Desktop/digestion/report_form/table_location/00102.png")
+    # color = ('b', 'g', 'r')
+    # for i, col in enumerate(color):
+    #     histr = cv2.calcHist([src_image], [i], None, [256], [0, 256])
+    #     plt.plot(histr, color=col)
+    #     plt.xlim([0, 256])
+
+    # draw gray_image histogram
+    gray_image = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
+    histr = cv2.calcHist([gray_image], [0], None, [256], [0, 256])
+    plt.plot(histr, color='black')
+    plt.xlim([0, 256])
+
+    plt.title("Matplotlib color Method")
+    plt.show()
+
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
@@ -163,5 +185,6 @@ if __name__ == "__main__":
     # threshold_image()
     # backgroud_classify()
     # rotate_image_test()
-    affine_image_test()
+    # affine_image_test()
+    draw_histogram()
     pass
