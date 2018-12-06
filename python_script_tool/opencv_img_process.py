@@ -159,7 +159,7 @@ def affine_image_test():
 
 def draw_histogram():
     src_image = cv2.imread(image_path)
-    src_image = cv2.imread("/home/wangchun/Desktop/digestion/report_form/table_location/00102.png")
+    src_image = cv2.imread("/home/wangchun/Desktop/digestion/report_form/table_location/00089.png")
     # color = ('b', 'g', 'r')
     # for i, col in enumerate(color):
     #     histr = cv2.calcHist([src_image], [i], None, [256], [0, 256])
@@ -176,6 +176,16 @@ def draw_histogram():
     plt.show()
 
 
+def channecl_64_test():
+    src_image = cv2.imread("/home/wangchun/Desktop/fc6e0d402a4036dcc9853d00f2fded36_1242_2688.png", cv2.IMREAD_UNCHANGED)
+
+    if src_image.dtype == "uint16":
+        src_image_8 = (src_image / 257).astype(np.uint8)
+    h, w = src_image.shape[:2]
+    cv2.imwrite("/home/wangchun/Desktop/fc6e0d402a4036dcc9853d00f2fded36_1242_2688_8.png", src_image_8)
+    cv2.imshow("src_image_8", cv2.resize(src_image_8, (w/2, h/2)))
+    cv2.waitKey(0)
+
 
 if __name__ == "__main__":
     # roi_image()
@@ -186,5 +196,6 @@ if __name__ == "__main__":
     # backgroud_classify()
     # rotate_image_test()
     # affine_image_test()
-    draw_histogram()
+    # draw_histogram()
+    channecl_64_test()
     pass
