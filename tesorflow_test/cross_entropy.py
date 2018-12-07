@@ -14,9 +14,12 @@ import keras
 import tensorflow as tf
 import numpy as np
 
-target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((2, 1, 3))
-output = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0]]).reshape((2, 1, 3))
-output = np.array([[0.25, 0.25, 0.5], [0.5, 0.25, 0.25]]).reshape((2, 1, 3))
+target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((2, 2, 3))
+output = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((2, 2, 3))
+
+
+# target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0]])
+# output = np.array([[0.25, 0.25, 0.5], [0.5, 0.25, 0.25]])
 
 target = tf.constant(target, name="target")
 output = tf.constant(output, name="output")
