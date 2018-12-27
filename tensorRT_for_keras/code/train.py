@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-# train.py
+# voc.py
 # @Author       : yuanwenjin
 # @Mail         : yfor1008@gmail.com
 # @Date         : 2018-1-17 11:11:06

@@ -28,6 +28,32 @@ def resize_image():
     cv2.imshow("dst_image", dst_image)
     cv2.waitKey(0)
 
+def resize_image_v2(src_image, width, height):
+    """
+        resize image but not make it transformative
+    """
+    if len(src_image.shape) == 2:  # gray_image
+        dst_image = np.ones((height, width), dtype=np.uint8) * 255
+    else:
+        dst_image = np.ones((height, width, src_image.shape[-1]), dtype=np.uint8) * 255
+
+    h, w = src_image.shape[:2]
+    w_ratio = width*1.0 / w
+    h_ratio = height*1.0 / h
+    if w_ratio < h_ratio:
+        src_image = cv2.resize(src_image, (width, int(h * w_ratio)))
+        h, w = src_image.shape[:2]
+        top = (height-h)/2
+        bottom = top + h
+        dst_image[top:bottom, :] = src_image
+    else:
+        src_image = cv2.resize(src_image, (int(w * h_ratio), height))
+        h, w = src_image.shape[:2]
+        left = (width - w) / 2
+        right = left + w
+        dst_image[:, left:right] = src_image
+
+    return dst_image
 
 def read_image_test():
     image_path = "../data/rgba.png"
@@ -159,7 +185,7 @@ def affine_image_test():
 
 def draw_histogram():
     src_image = cv2.imread(image_path)
-    src_image = cv2.imread("/home/wangchun/Desktop/digestion/report_form/table_location/00089.png")
+    src_image = cv2.imread("/home/wangchun/Desktop/pdf/report_form/easy/00008.png")
     # color = ('b', 'g', 'r')
     # for i, col in enumerate(color):
     #     histr = cv2.calcHist([src_image], [i], None, [256], [0, 256])
@@ -187,6 +213,17 @@ def channecl_64_test():
     cv2.waitKey(0)
 
 
+def gamma_tranform():
+    gamma = 0.1
+    gamma_table = [np.power(x / 255.0, gamma) * 255.0 for x in range(256)]
+    gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
+    src_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    dst_image = cv2.LUT(src_image, gamma_table)
+    cv2.imshow("src_image", src_image)
+    cv2.imshow("dst_image", dst_image)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
@@ -197,5 +234,6 @@ if __name__ == "__main__":
     # rotate_image_test()
     # affine_image_test()
     # draw_histogram()
-    channecl_64_test()
+    # channecl_64_test()
+    gamma_tranform()
     pass
