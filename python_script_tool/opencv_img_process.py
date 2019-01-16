@@ -3,6 +3,7 @@ import cv2
 import os
 import shutil
 import numpy as np
+from skimage.filters import threshold_sauvola
 from matplotlib import pyplot as plt
 from files_walk import get_image_list
 
@@ -27,6 +28,7 @@ def resize_image():
     dst_image = cv2.resize(src_image, (400, 300))   # (w, h)
     cv2.imshow("dst_image", dst_image)
     cv2.waitKey(0)
+
 
 def resize_image_v2(src_image, width, height):
     """
@@ -98,6 +100,18 @@ def threshold_image():
     ret, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_TRIANGLE)
     # ret, binary = cv2.threshold(gray_image, 125, 255, cv2.THRESH_BINARY)
     print "ret = {}".format(ret)
+    cv2.imshow("binary", binary)
+    cv2.waitKey(0)
+
+
+def sauvola():
+    image = cv2.imread(image_path)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    h, w = gray_image.shape[:2]
+    thresh_sauvola = threshold_sauvola(gray_image, window_size=7, k=0.07)
+    binary_sauvola = gray_image > thresh_sauvola
+    binary = np.ones((h, w), dtype=np.uint8)
+    binary[np.where(binary_sauvola == True)] = 255
     cv2.imshow("binary", binary)
     cv2.waitKey(0)
 
@@ -235,5 +249,6 @@ if __name__ == "__main__":
     # affine_image_test()
     # draw_histogram()
     # channecl_64_test()
-    gamma_tranform()
+    # gamma_tranform()
+    sauvola()
     pass

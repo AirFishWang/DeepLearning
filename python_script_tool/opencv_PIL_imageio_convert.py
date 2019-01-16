@@ -3,6 +3,7 @@ import cv2
 import imageio
 from PIL import Image
 import numpy as np
+from skimage import io
 
 
 def opencv_to_pil():
@@ -37,10 +38,18 @@ def imageio_to_opencv():
     cv2.waitKey()
 
 
+def skimage_to_opencv():
+    skimage_image = io.imread("../data/cat.jpeg")  # the type is numpy(uint8) mode = rgb
+    opencv_image = cv2.cvtColor(skimage_image, cv2.COLOR_RGB2BGR)
+    cv2.imshow("opencv", opencv_image)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # opencv_to_pil()
     # pil_to_opencv()
-    imageio_to_opencv()
+    # imageio_to_opencv()
+    skimage_to_opencv()
 
 
 
