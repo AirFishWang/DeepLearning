@@ -238,6 +238,28 @@ def gamma_tranform():
     cv2.waitKey(0)
 
 
+def mser_test():
+    bgr_image = cv2.imread(image_path)
+    gray_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2GRAY)
+    mser = cv2.MSER_create(_delta=3, _min_area=10, _max_area=1200)
+    try:
+        regions, boxes = mser.detectRegions(gray_image)
+    except:
+        boxes = []
+    boxes = np.array(list(set([tuple(t) for t in boxes])))  # remove repeat box
+
+    canvas_image = bgr_image.copy()
+    for box in boxes:
+        x, y, w, h = box
+        if min(w, h) <= 0:
+            continue
+        ratio = max(w, h) * 1.0 / min(w, h)
+        if ratio < 3:
+            cv2.rectangle(canvas_image, (x, y), (x+w, y+h), (0, 0, 255), 1)
+    cv2.imshow("canvas_image", canvas_image)
+    cv2.waitKey(0)
+
+
 if __name__ == "__main__":
     # roi_image()
     # read_image_test()
@@ -250,5 +272,6 @@ if __name__ == "__main__":
     # draw_histogram()
     # channecl_64_test()
     # gamma_tranform()
-    sauvola()
+    # sauvola()
+    mser_test()
     pass
