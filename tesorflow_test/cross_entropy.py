@@ -17,7 +17,7 @@ import numpy as np
 
 def focal(y_true, y_pred, alpha=0.25, gamma=2.0):
     """ Create a functor for computing the focal loss.
-
+    #  此focal loss函数只适用于二分类问题和单分类问题(当然单分类和二分类本质上属于一个问题)
     Args
         alpha: Scale the focal weight with alpha.
         gamma: Take the power of the focal weight with gamma.
@@ -35,34 +35,41 @@ def focal(y_true, y_pred, alpha=0.25, gamma=2.0):
     focal_weight = tf.where(tf.equal(labels, 1), 1 - classification, classification)
     focal_weight = alpha_factor * focal_weight ** gamma
 
-    cls_loss = focal_weight * keras.backend.categorical_crossentropy(labels, classification)
+    cls_loss = focal_weight * tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=classification)
+
     return tf.reduce_sum(cls_loss)
 
 
-target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((4, 3))
-output = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((4, 3))
+# target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((4, 3))
+# output = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((4, 3))
+# output2 = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]).reshape((4, 3))
 
 
-# target = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0]])
-# output = np.array([[0.25, 0.25, 0.5], [0.5, 0.25, 0.25]])
-
-target = np.array([1.0, 0.0, 0.0])
-output = np.array([0.1, 0.4, 0.5])
-output2 = np.array([0.2, 0.4, 0.4])
+target = np.array([1.0, 0.0])
+out = np.array([4.0, 2.0])
+out2 = np.array([3.0, 2.0])
 
 target = tf.constant(target, name="target")
-output = tf.constant(output, name="output")
-output2 = tf.constant(output2, name="output2")
+out = tf.constant(out, name="out")
 
-ce = keras.backend.categorical_crossentropy(target, output)
+softmax_out = tf.nn.softmax(out)
+sigmoid_out = tf.nn.sigmoid(out)
+sigmoid_out2 = tf.nn.sigmoid(out2)
 
-fl = focal(target, output, alpha=1, gamma=2)
-f2 = focal(target, output2, alpha=1, gamma=2)
+ce = keras.backend.categorical_crossentropy(target, softmax_out)
+sc = tf.nn.sigmoid_cross_entropy_with_logits(labels=target, logits=out)
+
+
+fl = focal(target, sigmoid_out, alpha=1, gamma=2)
+f2 = focal(target, sigmoid_out2, alpha=1, gamma=2)
 
 
 with tf.Session() as sess:
     tf.initialize_all_variables().run()
-    print sess.run(ce)
-    print sess.run(fl)
-    print sess.run(f2)
+    print "softmax_out = {}".format(sess.run(softmax_out))
+    print "sigmoid_out = {}".format(sess.run(sigmoid_out))
+    print "categorical_crossentropy = {}".format(sess.run(ce))
+    print "sigmoid_cross_entropy_with_logits = {}".format(sess.run(sc))
 
+    print "f1 = {}".format(sess.run(fl))
+    print "f2 = {}".format(sess.run(f2))
