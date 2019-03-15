@@ -48,17 +48,21 @@ output = np.array([[1.0, 1.0, 2.0], [2.0, 1.0, 1.0], [0.0, 0.0, 1.0], [0.0, 1.0,
 
 target = np.array([1.0, 0.0, 0.0])
 output = np.array([0.1, 0.4, 0.5])
+output2 = np.array([0.2, 0.4, 0.4])
 
 target = tf.constant(target, name="target")
 output = tf.constant(output, name="output")
+output2 = tf.constant(output2, name="output2")
 
 ce = keras.backend.categorical_crossentropy(target, output)
 
-fl = focal(target, output, alpha=1, gamma=0)
+fl = focal(target, output, alpha=1, gamma=2)
+f2 = focal(target, output2, alpha=1, gamma=2)
 
 
 with tf.Session() as sess:
     tf.initialize_all_variables().run()
     print sess.run(ce)
     print sess.run(fl)
+    print sess.run(f2)
 
