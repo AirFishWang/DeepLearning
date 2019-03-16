@@ -74,7 +74,8 @@ def my_cls_ohem(cls_prob, label, num_keep_radio=0.7):
     #FILTER OUT PART AND LANDMARK DATA
     loss = loss * tf.cast(valid_inds, dtype=tf.float64)
     topk_loss,_ = tf.nn.top_k(loss, k=keep_num)
-    return loss, tf.reduce_mean(topk_loss)
+    # return loss, tf.reduce_mean(topk_loss)  # debug
+    return tf.reduce_mean(topk_loss)
 
 
 def ohem_loss(target, output, num_keep_radio=0.7):
@@ -92,7 +93,8 @@ def ohem_loss(target, output, num_keep_radio=0.7):
     loss = tf.reduce_sum(- target * tf.log(output), axis=-1)
     batch_size = (target.get_shape()[0]).value
     topk_loss, _ = tf.nn.top_k(loss, k=int(batch_size*num_keep_radio))
-    return loss, tf.reduce_mean(topk_loss)
+    # return loss, tf.reduce_mean(topk_loss)  # debug
+    return tf.reduce_mean(topk_loss)
 
 
 if __name__ == "__main__":
@@ -105,8 +107,7 @@ if __name__ == "__main__":
     with tf.Session() as sess:
         tf.initialize_all_variables().run()
         print "encode label = {}".format(sess.run(gt_label))
-        loss, topk_mean_loss = sess.run(loss)
-        # loss = sorted(loss)
+        topk_mean_loss = sess.run(loss)
         print "loss = {}".format(loss)
         print "topk_mean_loss = {}".format(topk_mean_loss)
         print sess.run(ohem_loss(gt_label, y))
