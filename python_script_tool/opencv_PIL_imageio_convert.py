@@ -47,9 +47,9 @@ def skimage_to_opencv():
 
 if __name__ == "__main__":
     # opencv_to_pil()
-    # pil_to_opencv()
+    pil_to_opencv()
     # imageio_to_opencv()
-    skimage_to_opencv()
+    # skimage_to_opencv()
 
 
 
