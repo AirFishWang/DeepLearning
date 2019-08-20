@@ -264,7 +264,7 @@ if __name__ == "__main__":
     # roi_image()
     # read_image_test()
     # resize_image()
-    # concatenate_image()
+    concatenate_image()
     # threshold_image()
     # backgroud_classify()
     # rotate_image_test()
@@ -273,5 +273,5 @@ if __name__ == "__main__":
     # channecl_64_test()
     # gamma_tranform()
     # sauvola()
-    mser_test()
+    # mser_test()
     pass
