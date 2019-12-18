@@ -25,6 +25,14 @@ def argsort_test():
     l = np.array(l)
     print l[np.argsort(l)]            # print [0.2 0.4 0.5 0.7 0.9]
 
+
+def sort_lambda():
+    x = [[3, 2], [4, 1], [2, 5], [0, 4]]
+    print sorted(x, key=lambda x: x[0])
+    print sorted(x, key=lambda x: x[1])
+    print sorted(x, key=lambda x: x[1]*x[0])
+
 if __name__ == "__main__":
-    sort_test()
-    argsort_test()
+    # sort_test()
+    # argsort_test()
+    sort_lambda()
