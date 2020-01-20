@@ -17,7 +17,7 @@ import numpy as np
 
 def focal(y_true, y_pred, alpha=0.25, gamma=2.0):
     """ Create a functor for computing the focal loss.
-    #  此focal loss函数只适用于二分类问题和单分类问题(当然单分类和二分类本质上属于一个问题)
+    #  此focal loss函数只适用于二分类问题
     Args
         alpha: Scale the focal weight with alpha.
         gamma: Take the power of the focal weight with gamma.
@@ -35,7 +35,7 @@ def focal(y_true, y_pred, alpha=0.25, gamma=2.0):
     focal_weight = tf.where(tf.equal(labels, 1), 1 - classification, classification)
     focal_weight = alpha_factor * focal_weight ** gamma
 
-    cls_loss = focal_weight * tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=classification)
+    cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification)
 
     return tf.reduce_sum(cls_loss)
 
