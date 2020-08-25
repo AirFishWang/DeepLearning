@@ -73,3 +73,13 @@ with tf.Session() as sess:
 
     print "f1 = {}".format(sess.run(fl))
     print "f2 = {}".format(sess.run(f2))
+
+
+feature_map = np.zeros((3, 4, 4, 2), dtype=np.float)
+feature_map[:,:,:,0] = 1
+softmax_out = tf.nn.softmax(feature_map)
+with tf.Session() as sess:
+    tf.initialize_all_variables().run()
+    result = sess.run(softmax_out)
+    print "softmax_out = {}".format(result)
+pass

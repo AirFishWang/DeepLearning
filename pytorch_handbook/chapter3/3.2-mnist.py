@@ -16,6 +16,7 @@ print(torch.__version__)
 
 BATCH_SIZE=512 #大概需要2G的显存
 EPOCHS=20 # 总共训练批次
+EPOCHS=1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu") # 让torch判断是否使用GPU，建议使用GPU环境，因为会快很多
 
 train_loader = torch.utils.data.DataLoader(
@@ -92,6 +93,10 @@ def test(model, device, test_loader):
 
 for epoch in range(1, EPOCHS + 1):
     train(model, DEVICE, train_loader, optimizer, epoch)
+
+    torch.save(model, 'model.pth')
+    model = torch.load('model.pth')
+
     test(model, DEVICE, test_loader)
 
 
